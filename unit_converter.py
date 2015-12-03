@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
+import os
 
-#TO DO - set locale
+# TO DO - set locale
+
+
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 
 class Unit(object):
     def __init__(self, conversion, unit_dictionary):
@@ -15,14 +21,16 @@ yards = Unit(1.09361, {"yard": "meters", "yards": "meters", "yd": "m"})
 miles = Unit(1.609344, {"miles": "kilometers", "mi": "km"})
 temperature = Unit(9, {"°F": "°C", "degrees Fahrenheit": "degrees Celsius", "degrees F": "degrees C", "F": "C"})
 
-list_of_objects = [inches, feet, miles, temperature, yards] #TO DO - iterate through class???
+
+list_of_objects = [inches, feet, miles, temperature, yards]  # TO DO - iterate through class???
+
 
 def convert_text():
 
-    with open('C:\\Users\\Macek\\PycharmProjects\\American to normal\\text.txt', 'r') as input:
-        text = input.read()
+    with open(os.path.join(__location__, 'text.txt'), 'r') as f:
+        text = f.read()
 
-        value_dict = {} # matches imperial values with metric values
+        value_dict = {}  # matches imperial values with metric values
 
         def convert_value(obj):
             for i in obj.unit_dictionary.keys():
@@ -44,11 +52,11 @@ def convert_text():
             convert_value(j)
 
 
-    with open('C:\\Users\\Macek\\PycharmProjects\\American to normal\\output.txt', 'w') as output:
+    with open(os.path.join(__location__, 'output.txt'), 'w') as o:
         if not value_dict:
-            output.write(text)
+            o.write(text)
         else:
             pattern = re.compile(r'|'.join(value_dict.keys()))
-            output.write(pattern.sub(lambda x: value_dict[x.group()], text))
+            o.write(pattern.sub(lambda x: value_dict[x.group()], text))
 
 convert_text()
