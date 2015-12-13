@@ -7,13 +7,21 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'English_United States')
 
-
 location = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
+class IterRegistry(type):
+    def __iter__(cls):
+        return iter(cls._registry)
+
 
 class Unit(object):
+    __metaclass__ = IterRegistry
+    _registry = []
+
+
     def __init__(self, conversion, unit_dictionary):
+        self._registry.append(self)
         self.num_regex = '(-)?(\d+(?:,+\d+)*)(\.\d+)?'
         self.conversion = conversion
         self.unit_dictionary = unit_dictionary
@@ -21,13 +29,12 @@ class Unit(object):
 
 inches = Unit(0.39370079, {"in": "cm", "inch": "centimeter", "inches": "centimeters"})
 feet = Unit(3.28, {"feet": "meters", "ft": "m", "foot": "meters"})
+sq_feet = Unit(10.7639, {'square feet': 'square meters'})
 yards = Unit(1.09361, {"yard": "meters", "yards": "meters", "yd": "m"})
 miles = Unit(1.609344, {"miles": "kilometers", "mi": "km"})
 temperature = Unit(9, {"°F": "°C", "degrees Fahrenheit": "degrees Celsius", "degrees F": "degrees C", "F": "C"})
 
 # To Do - add new units
-
-list_of_objects = [inches, feet, miles, temperature, yards]  # TO DO - iterate through class???
 
 
 def convert_text(text, unit, i):
@@ -65,7 +72,7 @@ if __name__ == '__main__':
     with open(os.path.join(location, 'text.txt'), 'r') as f:
         text = f.read()
 
-        for obj in list_of_objects:
+        for obj in Unit._registry:
             obj_data[obj] = convert_value(text, obj)
 
     with open(os.path.join(location, 'output.txt'), 'w') as o:
