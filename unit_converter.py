@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import os
+import locale
 
-# TO DO - set locale
+# To Do - enter docx files
+
+locale.setlocale(locale.LC_ALL, 'English_United States')
 
 
 location = os.path.realpath(
@@ -11,9 +14,10 @@ location = os.path.realpath(
 
 class Unit(object):
     def __init__(self, conversion, unit_dictionary):
-        self.num_regex = '(-)?(\d+)(\.\d+)?'
+        self.num_regex = '(-)?(\d+(?:,+\d+)*)(\.\d+)?'
         self.conversion = conversion
         self.unit_dictionary = unit_dictionary
+
 
 inches = Unit(0.39370079, {"in": "cm", "inch": "centimeter", "inches": "centimeters"})
 feet = Unit(3.28, {"feet": "meters", "ft": "m", "foot": "meters"})
@@ -21,6 +25,7 @@ yards = Unit(1.09361, {"yard": "meters", "yards": "meters", "yd": "m"})
 miles = Unit(1.609344, {"miles": "kilometers", "mi": "km"})
 temperature = Unit(9, {"°F": "°C", "degrees Fahrenheit": "degrees Celsius", "degrees F": "degrees C", "F": "C"})
 
+# To Do - add new units
 
 list_of_objects = [inches, feet, miles, temperature, yards]  # TO DO - iterate through class???
 
@@ -38,17 +43,18 @@ def convert_value(text, unit):
         values = convert_text(text, unit, i)
         for p in values:
             american_value = ''.join(p)
-            american_number = float(''.join(p[0:3]))
+            american_number = locale.atof(''.join(p[0:3]))
             american_unit = p[4]
 
             if american_unit in temperature.unit_dictionary.keys():
-                european_number = str(round((float(american_number - 32)) * 5 / unit.conversion, 2))
+                european_number = str('{0:,}'.format(round((float(american_number - 32)) * 5 / unit.conversion, 2)))
             else:
-                european_number = str(round(float(american_number) / unit.conversion, 2))
+                european_number = str('{0:,}'.format(round(float(american_number) / unit.conversion, 2)))
 
             european_unit = str(unit.unit_dictionary.get(american_unit))
             european_value = european_number + ' ' + european_unit
             value_dict[american_value] = european_value
+
 
     return value_dict
 
