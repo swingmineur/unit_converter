@@ -5,7 +5,7 @@ import os
 # TO DO - set locale
 
 
-__location__ = os.path.realpath(
+location = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
@@ -25,38 +25,49 @@ temperature = Unit(9, {"°F": "°C", "degrees Fahrenheit": "degrees Celsius", "d
 list_of_objects = [inches, feet, miles, temperature, yards]  # TO DO - iterate through class???
 
 
-def convert_text():
+def convert_text(text, unit, i):
 
-    with open(os.path.join(__location__, 'text.txt'), 'r') as f:
+    regex = re.compile(unit.num_regex+'(\s)('+i+')\\b')
+    return regex.findall(text)
+
+
+def convert_value(text, unit):
+    value_dict = {}
+
+    for i in unit.unit_dictionary.keys():
+        values = convert_text(text, unit, i)
+        for p in values:
+            american_value = ''.join(p)
+            american_number = float(''.join(p[0:3]))
+            american_unit = p[4]
+
+            if american_unit in temperature.unit_dictionary.keys():
+                european_number = str(round((float(american_number - 32)) * 5 / unit.conversion, 2))
+            else:
+                european_number = str(round(float(american_number) / unit.conversion, 2))
+
+            european_unit = str(unit.unit_dictionary.get(american_unit))
+            european_value = european_number + ' ' + european_unit
+            value_dict[american_value] = european_value
+
+    return value_dict
+
+
+if __name__ == '__main__':
+    obj_data = {}
+
+    with open(os.path.join(location, 'text.txt'), 'r') as f:
         text = f.read()
 
-        value_dict = {}  # matches imperial values with metric values
+        for obj in list_of_objects:
+            obj_data[obj] = convert_value(text, obj)
 
-        def convert_value(obj):
-            for i in obj.unit_dictionary.keys():
-                regex = re.compile(obj.num_regex+'(\s)('+i+')\\b')
-                values = regex.findall(text)
-                for p in values:
-                    american_value = ''.join(p)
-                    american_number = float(''.join(p[0:3]))
-                    american_unit = p[4]
-                    if american_unit in temperature.unit_dictionary.keys():
-                        european_number = str(round((float(american_number - 32)) * 5 / obj.conversion, 2))
-                    else:
-                        european_number = str(round(float(american_number) / obj.conversion, 2))
-                    european_unit = str(obj.unit_dictionary.get(american_unit))
-                    european_value = european_number + ' ' + european_unit
-                    value_dict[american_value] = european_value
-
-        for j in list_of_objects:
-            convert_value(j)
-
-
-    with open(os.path.join(__location__, 'output.txt'), 'w') as o:
-        if not value_dict:
+    with open(os.path.join(location, 'output.txt'), 'w') as o:
+        if not obj_data:
             o.write(text)
         else:
-            pattern = re.compile(r'|'.join(value_dict.keys()))
-            o.write(pattern.sub(lambda x: value_dict[x.group()], text))
-
-convert_text()
+            units = {}
+            for i in obj_data.values():
+                units.update(i)
+            pattern = re.compile(r'|'.join(units.keys()))
+            o.write(pattern.sub(lambda x: units[x.group()], text))
